@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import PortfolioPreview from "./components/PortfolioPreview"
+import { NetlifyDeployDialog } from "@/components/NetlifyDeployDialog"
 
 interface PortfolioData {
   name: string
@@ -131,8 +132,10 @@ export default function BuilderPage() {
   const [deploymentUrl, setDeploymentUrl] = useState("")
   const [generatedPortfolioUrl, setGeneratedPortfolioUrl] = useState("")
   const [showMobileMenu, setShowMobileMenu] = useState(false)
+  const [showNetlifyDialog, setShowNetlifyDialog] = useState(false)
+  const [siteId, setSiteId] = useState("")
   const [isChatOpen, setIsChatOpen] = useState(false)
-  const [chatMessages, setChatMessages] = useState<{role: string, content: string}[]>([
+  const [chatMessages, setChatMessages] = useState<{ role: string, content: string }[]>([
     { role: "assistant", content: "Hi! I'm here to help you build your portfolio. Ask me anything about customization, templates, or deployment!" }
   ])
   const [chatInput, setChatInput] = useState("")
@@ -149,6 +152,10 @@ export default function BuilderPage() {
         console.error("Failed to load saved data:", error)
       }
     }
+    const savedSiteId = localStorage.getItem("portfolio-site-id")
+    if (savedSiteId) setSiteId(savedSiteId)
+    const savedUrl = localStorage.getItem("portfolio-url")
+    if (savedUrl) setDeploymentUrl(savedUrl)
   }, [])
 
   // Close mobile menu when clicking outside
@@ -366,9 +373,9 @@ export default function BuilderPage() {
     <section class="gradient-bg" style="min-height: 80vh; display: flex; align-items: center;">
         <div class="container" style="text-align: center;">
             <div class="avatar">
-                ${data.profilePicture 
-                    ? `<img src="${data.profilePicture}" alt="${data.name}" />`
-                    : data.name ? data.name.charAt(0).toUpperCase() : "?"}
+                ${data.profilePicture
+        ? `<img src="${data.profilePicture}" alt="${data.name}" />`
+        : data.name ? data.name.charAt(0).toUpperCase() : "?"}
             </div>
             <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 16px;">${data.name || "Your Name"}</h1>
             <h2 style="font-size: 1.5rem; color: ${data.theme.primaryColor}; margin-bottom: 24px;">${data.title || "Your Title"}</h2>
@@ -491,6 +498,27 @@ export default function BuilderPage() {
     }
   }
 
+  const generatePortfolioFiles = (data: PortfolioData) => {
+    return {
+      "index.html": generatePortfolioHTML(data),
+      "package.json": `{
+  "name": "${data.name?.toLowerCase().replace(/\s+/g, "-") || "portfolio"}",
+  "version": "1.0.0",
+  "description": "Portfolio website for ${data.name || "Developer"}"
+}`,
+      "README.md": `# ${data.name || "Portfolio"} Website\n\nBuilt with Portfolio Builder`
+    }
+  }
+
+  const handleDeploySuccess = (url: string, id: string) => {
+    setDeploymentUrl(url)
+    setSiteId(id)
+    localStorage.setItem("portfolio-site-id", id)
+    localStorage.setItem("portfolio-url", url)
+    setShowNetlifyDialog(false)
+    toast({ title: "Deployment Successful!", description: `Your portfolio is live at ${url}` })
+  }
+
   const handleChatSend = () => {
     if (!chatInput.trim()) return
     const userMessage = chatInput.trim()
@@ -523,6 +551,14 @@ export default function BuilderPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
+      <NetlifyDeployDialog
+        open={showNetlifyDialog}
+        onOpenChange={setShowNetlifyDialog}
+        files={generatePortfolioFiles(portfolioData)}
+        existingSiteId={siteId}
+        onDeploySuccess={handleDeploySuccess}
+      />
+
       {/* Header */}
       <header className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
@@ -553,6 +589,16 @@ export default function BuilderPage() {
                   <Save className="w-4 h-4 mr-1" />
                 )}
                 <span className="hidden sm:inline">Save</span>
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowNetlifyDialog(true)}
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs px-3"
+              >
+                <Globe className="w-4 h-4 mr-1" />
+                <span className="hidden sm:inline">{deploymentUrl ? "Update Site" : "Deploy"}</span>
               </Button>
 
               <div className="relative">
