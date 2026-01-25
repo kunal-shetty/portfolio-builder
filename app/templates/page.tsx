@@ -2,240 +2,268 @@
 
 import { useState } from "react"
 import { motion } from "framer-motion"
-import { Eye, Code, Download, Star, Heart, Zap } from "lucide-react"
+import { Eye, Code, Download, Star, Heart, Zap, ArrowLeft, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
-import Image from "next/image"
 
 const templates = [
   {
     id: 1,
     name: "Neon Cyber",
     description: "Futuristic portfolio with neon effects and cyberpunk aesthetics",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=300&fit=crop",
     category: "Modern",
     features: ["Neon Glow", "Particle Effects", "3D Animations", "Dark Theme"],
     rating: 4.9,
     downloads: 1234,
-    preview: "https://neon-cyber-demo.vercel.app",
+    colors: { primary: "#8B5CF6", secondary: "#EC4899", bg: "#0a0a0a", text: "#FFFFFF" },
   },
   {
     id: 2,
     name: "Minimal Clean",
     description: "Clean and professional design with subtle animations",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=300&fit=crop",
     category: "Minimal",
     features: ["Clean Design", "Smooth Transitions", "Light Theme", "Typography Focus"],
     rating: 4.8,
     downloads: 987,
-    preview: "https://minimal-clean-demo.vercel.app",
+    colors: { primary: "#3B82F6", secondary: "#10B981", bg: "#FFFFFF", text: "#1F2937" },
   },
   {
     id: 3,
     name: "Brutalist Bold",
     description: "Bold and experimental design with strong typography",
-    image: "/placeholder.svg?height=300&width=400",
+    image: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=300&fit=crop",
     category: "Experimental",
     features: ["Bold Typography", "Geometric Shapes", "High Contrast", "Experimental Layout"],
     rating: 4.7,
     downloads: 756,
-    preview: "https://brutalist-bold-demo.vercel.app",
+    colors: { primary: "#EF4444", secondary: "#F59E0B", bg: "#FEF3C7", text: "#1F2937" },
   },
   {
     id: 4,
-    name: "Glass Morphism",
-    description: "Modern glassmorphism design with frosted glass effects",
-    image: "/placeholder.svg?height=300&width=400",
+    name: "Ocean Blue",
+    description: "Calm and professional with ocean-inspired color palette",
+    image: "https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=400&h=300&fit=crop",
     category: "Modern",
-    features: ["Glass Effects", "Backdrop Blur", "Gradient Backgrounds", "Modern UI"],
+    features: ["Ocean Colors", "Smooth Waves", "Professional", "Dark Mode"],
     rating: 4.9,
     downloads: 1456,
-    preview: "https://glass-morphism-demo.vercel.app",
+    colors: { primary: "#0EA5E9", secondary: "#06B6D4", bg: "#0F172A", text: "#F1F5F9" },
   },
   {
     id: 5,
-    name: "Retro Wave",
-    description: "80s inspired design with synthwave aesthetics",
-    image: "/placeholder.svg?height=300&width=400",
-    category: "Retro",
-    features: ["Retro Colors", "Synthwave Style", "Neon Grids", "Vintage Effects"],
+    name: "Forest Green",
+    description: "Nature-inspired design with earthy tones and organic shapes",
+    image: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=400&h=300&fit=crop",
+    category: "Organic",
+    features: ["Earth Tones", "Organic Shapes", "Nature Inspired", "Soft Animations"],
     rating: 4.6,
     downloads: 623,
-    preview: "https://retro-wave-demo.vercel.app",
+    colors: { primary: "#22C55E", secondary: "#84CC16", bg: "#0F1F14", text: "#ECFDF5" },
   },
   {
     id: 6,
-    name: "Nature Organic",
-    description: "Organic design inspired by nature with earth tones",
-    image: "/placeholder.svg?height=300&width=400",
-    category: "Organic",
-    features: ["Earth Tones", "Organic Shapes", "Nature Inspired", "Soft Animations"],
-    rating: 4.5,
-    downloads: 445,
-    preview: "https://nature-organic-demo.vercel.app",
+    name: "Sunset Gradient",
+    description: "Warm gradient colors with a creative and artistic feel",
+    image: "https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=400&h=300&fit=crop",
+    category: "Creative",
+    features: ["Warm Gradients", "Artistic", "Creative Layout", "Sunset Colors"],
+    rating: 4.8,
+    downloads: 892,
+    colors: { primary: "#F97316", secondary: "#EF4444", bg: "#1C1917", text: "#FEF3C7" },
   },
 ]
 
-const categories = ["All", "Modern", "Minimal", "Experimental", "Retro", "Organic"]
+const categories = ["All", "Modern", "Minimal", "Experimental", "Organic", "Creative"]
 
 export default function TemplatesPage() {
   const [selectedCategory, setSelectedCategory] = useState("All")
-  const [hoveredTemplate, setHoveredTemplate] = useState<number | null>(null)
+  const [selectedTemplate, setSelectedTemplate] = useState<typeof templates[0] | null>(null)
 
-  const filteredTemplates =
-    selectedCategory === "All" ? templates : templates.filter((template) => template.category === selectedCategory)
+  const filteredTemplates = selectedCategory === "All" 
+    ? templates 
+    : templates.filter((t) => t.category === selectedCategory)
+
+  const handleUseTemplate = (template: typeof templates[0]) => {
+    // Save template to localStorage and redirect to builder
+    const portfolioData = {
+      name: "",
+      title: "",
+      bio: "",
+      email: "",
+      github: "",
+      linkedin: "",
+      profilePicture: "",
+      projects: [],
+      skills: [],
+      theme: {
+        name: template.name,
+        primaryColor: template.colors.primary,
+        secondaryColor: template.colors.secondary,
+        backgroundColor: template.colors.bg,
+        textColor: template.colors.text,
+        font: "Inter",
+        layout: "grid",
+      },
+      animations: true,
+      soundEffects: false,
+    }
+    localStorage.setItem("portfolio-data", JSON.stringify(portfolioData))
+    window.location.href = "/builder"
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
       {/* Header */}
-      <motion.header
-        initial={{ y: -100 }}
-        animate={{ y: 0 }}
-        className="bg-black/20 backdrop-blur-md border-b border-white/10"
-      >
-        <div className="max-w-7xl mx-auto px-4 py-6">
+      <header className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-white mb-2">Portfolio Templates</h1>
-              <p className="text-gray-300">Choose from our collection of stunning portfolio templates</p>
+            <div className="flex items-center gap-4">
+              <Link href="/">
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-xl md:text-2xl font-bold text-white">Portfolio Templates</h1>
+                <p className="text-sm text-gray-400 hidden sm:block">Choose from our collection of stunning templates</p>
+              </div>
             </div>
             <Link href="/builder">
-              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+              <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white">
                 Start Building
               </Button>
             </Link>
           </div>
         </div>
-      </motion.header>
+      </header>
 
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Category Filter */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex flex-wrap gap-4 mb-12 justify-center"
-        >
+        <div className="flex flex-wrap gap-2 md:gap-3 mb-8 justify-center">
           {categories.map((category) => (
             <Button
               key={category}
               variant={selectedCategory === category ? "default" : "outline"}
+              size="sm"
               onClick={() => setSelectedCategory(category)}
-              className={`${
-                selectedCategory === category
-                  ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                  : "border-white/20 text-white hover:bg-white/10"
-              }`}
+              className={selectedCategory === category
+                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0"
+                : "border-white/30 text-white hover:bg-white/10 bg-transparent"
+              }
             >
               {category}
             </Button>
           ))}
-        </motion.div>
+        </div>
 
         {/* Templates Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTemplates.map((template, index) => (
             <motion.div
               key={template.id}
-              initial={{ opacity: 0, y: 50 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
-              onHoverStart={() => setHoveredTemplate(template.id)}
-              onHoverEnd={() => setHoveredTemplate(null)}
-              whileHover={{ scale: 1.05, rotateY: 5 }}
-              className="group"
+              whileHover={{ y: -5 }}
             >
-              <Card className="bg-black/20 backdrop-blur-md border-white/10 overflow-hidden hover:border-purple-500/50 transition-all duration-300">
-                <div className="relative overflow-hidden">
-                  <Image
+              <Card className="bg-black/30 backdrop-blur-md border-white/10 overflow-hidden hover:border-purple-500/50 transition-all duration-300 h-full flex flex-col">
+                <div className="relative overflow-hidden group">
+                  <img
                     src={template.image || "/placeholder.svg"}
                     alt={template.name}
-                    width={400}
-                    height={300}
                     className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
                   />
-
-                  {/* Overlay */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: hoveredTemplate === template.id ? 1 : 0 }}
-                    className="absolute inset-0 bg-black/60 flex items-center justify-center gap-4"
-                  >
+                  
+                  {/* Hover Overlay */}
+                  <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
                     <Button
                       size="sm"
                       variant="outline"
-                      className="border-white text-white hover:bg-white hover:text-black"
+                      onClick={() => setSelectedTemplate(template)}
+                      className="border-white text-white hover:bg-white hover:text-black bg-transparent"
                     >
                       <Eye className="w-4 h-4 mr-2" />
                       Preview
                     </Button>
-                    <Link href={`/builder?template=${template.id}`}>
-                      <Button size="sm" className="bg-purple-600 hover:bg-purple-700 text-white">
-                        <Code className="w-4 h-4 mr-2" />
-                        Use Template
-                      </Button>
-                    </Link>
-                  </motion.div>
+                    <Button
+                      size="sm"
+                      onClick={() => handleUseTemplate(template)}
+                      className="bg-purple-600 hover:bg-purple-700 text-white"
+                    >
+                      <Code className="w-4 h-4 mr-2" />
+                      Use
+                    </Button>
+                  </div>
 
                   {/* Category Badge */}
-                  <Badge className="absolute top-4 left-4 bg-purple-600/80 text-white">{template.category}</Badge>
+                  <Badge className="absolute top-3 left-3 bg-purple-600/90 text-white border-0">
+                    {template.category}
+                  </Badge>
+
+                  {/* Color Preview */}
+                  <div className="absolute bottom-3 right-3 flex gap-1">
+                    <div className="w-5 h-5 rounded-full border-2 border-white/50" style={{ backgroundColor: template.colors.primary }} />
+                    <div className="w-5 h-5 rounded-full border-2 border-white/50" style={{ backgroundColor: template.colors.secondary }} />
+                  </div>
                 </div>
 
-                <CardHeader>
+                <CardHeader className="pb-2">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-white">{template.name}</CardTitle>
+                    <CardTitle className="text-white text-lg">{template.name}</CardTitle>
                     <div className="flex items-center gap-1 text-yellow-400">
                       <Star className="w-4 h-4 fill-current" />
                       <span className="text-sm">{template.rating}</span>
                     </div>
                   </div>
-                  <p className="text-gray-300 text-sm">{template.description}</p>
+                  <p className="text-gray-400 text-sm">{template.description}</p>
                 </CardHeader>
 
-                <CardContent>
-                  <div className="space-y-4">
-                    {/* Features */}
-                    <div className="flex flex-wrap gap-2">
-                      {template.features.map((feature, featureIndex) => (
-                        <Badge key={featureIndex} variant="secondary" className="bg-white/10 text-gray-300 text-xs">
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
+                <CardContent className="flex-1 flex flex-col">
+                  {/* Features */}
+                  <div className="flex flex-wrap gap-1.5 mb-4">
+                    {template.features.map((feature, i) => (
+                      <Badge key={i} variant="secondary" className="bg-white/10 text-gray-300 text-xs border-0">
+                        {feature}
+                      </Badge>
+                    ))}
+                  </div>
 
-                    {/* Stats */}
-                    <div className="flex items-center justify-between text-sm text-gray-400">
-                      <div className="flex items-center gap-1">
-                        <Download className="w-4 h-4" />
-                        <span>{template.downloads.toLocaleString()} downloads</span>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Heart className="w-4 h-4" />
-                        <span>Popular</span>
-                      </div>
+                  {/* Stats */}
+                  <div className="flex items-center justify-between text-sm text-gray-400 mb-4">
+                    <div className="flex items-center gap-1">
+                      <Download className="w-4 h-4" />
+                      <span>{template.downloads.toLocaleString()} uses</span>
                     </div>
+                    <div className="flex items-center gap-1">
+                      <Heart className="w-4 h-4" />
+                      <span>Popular</span>
+                    </div>
+                  </div>
 
-                    {/* Actions */}
-                    <div className="flex gap-2 pt-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="flex-1 border-white/20 text-white hover:bg-white/10"
-                      >
-                        <Eye className="w-4 h-4 mr-2" />
-                        Preview
-                      </Button>
-                      <Link href={`/builder?template=${template.id}`} className="flex-1">
-                        <Button
-                          size="sm"
-                          className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                        >
-                          <Zap className="w-4 h-4 mr-2" />
-                          Use
-                        </Button>
-                      </Link>
-                    </div>
+                  {/* Actions */}
+                  <div className="flex gap-2 mt-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setSelectedTemplate(template)}
+                      className="flex-1 border-white/30 text-white hover:bg-white/10 bg-transparent"
+                    >
+                      <Eye className="w-4 h-4 mr-2" />
+                      Preview
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={() => handleUseTemplate(template)}
+                      className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Use
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -248,22 +276,130 @@ export default function TemplatesPage() {
           initial={{ opacity: 0, y: 50 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mt-20"
+          className="text-center mt-16 md:mt-20"
         >
-          <h2 className="text-4xl font-bold text-white mb-6">Can't Find What You're Looking For?</h2>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl mx-auto">
+          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">Can't Find What You're Looking For?</h2>
+          <p className="text-lg text-gray-300 mb-8 max-w-2xl mx-auto">
             Create your own custom portfolio from scratch with our powerful builder
           </p>
           <Link href="/builder">
             <Button
               size="lg"
-              className="bg-gradient-to-r from-yellow-500 via-red-500 to-pink-500 hover:from-yellow-600 hover:via-red-600 hover:to-pink-600 text-white px-12 py-6 text-xl font-bold rounded-full"
+              className="bg-gradient-to-r from-yellow-500 via-red-500 to-pink-500 hover:from-yellow-600 hover:via-red-600 hover:to-pink-600 text-white px-8 py-4 text-lg font-bold rounded-full"
             >
               Start From Scratch
             </Button>
           </Link>
         </motion.div>
       </div>
+
+      {/* Template Preview Modal */}
+      {selectedTemplate && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4"
+          onClick={() => setSelectedTemplate(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            exit={{ scale: 0.9, y: 20 }}
+            className="bg-gray-900 border border-gray-700 rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="relative">
+              <img
+                src={selectedTemplate.image || "/placeholder.svg"}
+                alt={selectedTemplate.name}
+                className="w-full h-64 object-cover"
+              />
+              <button
+                onClick={() => setSelectedTemplate(null)}
+                className="absolute top-4 right-4 w-10 h-10 bg-black/50 rounded-full flex items-center justify-center text-white hover:bg-black/70"
+              >
+                ✕
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-2xl font-bold text-white">{selectedTemplate.name}</h2>
+                <Badge className="bg-purple-600 text-white">{selectedTemplate.category}</Badge>
+              </div>
+              
+              <p className="text-gray-300 mb-6">{selectedTemplate.description}</p>
+              
+              {/* Color Palette */}
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-400 mb-3">Color Palette</h3>
+                <div className="flex gap-3">
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-lg border border-white/20" style={{ backgroundColor: selectedTemplate.colors.primary }} />
+                    <span className="text-xs text-gray-400 mt-1">Primary</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-lg border border-white/20" style={{ backgroundColor: selectedTemplate.colors.secondary }} />
+                    <span className="text-xs text-gray-400 mt-1">Secondary</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-lg border border-white/20" style={{ backgroundColor: selectedTemplate.colors.bg }} />
+                    <span className="text-xs text-gray-400 mt-1">Background</span>
+                  </div>
+                  <div className="flex flex-col items-center">
+                    <div className="w-12 h-12 rounded-lg border border-white/20" style={{ backgroundColor: selectedTemplate.colors.text }} />
+                    <span className="text-xs text-gray-400 mt-1">Text</span>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Features */}
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-400 mb-3">Features Included</h3>
+                <div className="grid grid-cols-2 gap-2">
+                  {selectedTemplate.features.map((feature, i) => (
+                    <div key={i} className="flex items-center gap-2 text-gray-300">
+                      <Check className="w-4 h-4 text-green-400" />
+                      {feature}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Stats */}
+              <div className="flex items-center gap-6 mb-6 text-gray-400">
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-yellow-400 fill-current" />
+                  <span>{selectedTemplate.rating} rating</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Download className="w-5 h-5" />
+                  <span>{selectedTemplate.downloads.toLocaleString()} uses</span>
+                </div>
+              </div>
+              
+              {/* Actions */}
+              <div className="flex gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setSelectedTemplate(null)}
+                  className="flex-1 border-gray-600 text-gray-300 hover:bg-gray-800 bg-transparent"
+                >
+                  Close
+                </Button>
+                <Button
+                  onClick={() => handleUseTemplate(selectedTemplate)}
+                  className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Use This Template
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
     </div>
   )
 }
