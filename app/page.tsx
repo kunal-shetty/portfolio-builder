@@ -51,6 +51,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
       <ParticlesBackground />
       <FloatingElements />
+{/* Navigation Bar */}
+
 
       {/* Custom cursor */}
       <motion.div

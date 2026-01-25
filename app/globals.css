@@ -63,6 +63,7 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
@@ -70,20 +71,24 @@
 
 /* Custom animations */
 @keyframes float {
+
   0%,
   100% {
     transform: translateY(0px);
   }
+
   50% {
     transform: translateY(-20px);
   }
 }
 
 @keyframes pulse-glow {
+
   0%,
   100% {
     box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
   }
+
   50% {
     box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
   }
@@ -93,9 +98,11 @@
   0% {
     background-position: 0% 50%;
   }
+
   50% {
     background-position: 100% 50%;
   }
+
   100% {
     background-position: 0% 50%;
   }
@@ -142,6 +149,7 @@
 }
 
 @keyframes glitch-1 {
+
   0%,
   14%,
   15%,
@@ -151,6 +159,7 @@
   100% {
     transform: translate(0);
   }
+
   15%,
   49% {
     transform: translate(-2px, 0);
@@ -158,6 +167,7 @@
 }
 
 @keyframes glitch-2 {
+
   0%,
   20%,
   21%,
@@ -167,6 +177,7 @@
   100% {
     transform: translate(0);
   }
+
   21%,
   62% {
     transform: translate(2px, 0);
@@ -212,20 +223,94 @@
   border-radius: 50%;
 }
 
-/* Glass morphism */
-.glass {
-  background: rgba(255, 255, 255, 0.1);
+
+/* Premium Glass Effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+.glass-card:hover {
+  background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Brutalist styles */
-.brutalist {
-  box-shadow: 8px 8px 0px #000000;
-  border: 3px solid #000000;
+/* Gradient Text */
+.text-gradient {
+  background: linear-gradient(to right, #c084fc, #ec4899, #ef4444);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.brutalist:hover {
-  transform: translate(-2px, -2px);
-  box-shadow: 10px 10px 0px #000000;
+/* Grid Background */
+.bg-grid-pattern {
+  background-size: 50px 50px;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  mask-image: linear-gradient(to bottom, black 40%, transparent 100%);
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
+
+.preserve-3d {
+  transform-style: preserve-3d;
+}
+
+/* Builder Page Premium Styles */
+.builder-card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.builder-card-hover:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 20px 25px -5px rgba(139, 92, 246, 0.1), 0 10px 10px -5px rgba(139, 92, 246, 0.04);
+}
+
+.glass-effect {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.input-glow:focus {
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+  border-color: rgb(139, 92, 246);
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(to right, transparent 0%, rgba(255, 255, 255, 0.1) 50%, transparent 100%);
+  background-size: 1000px 100%;
+}
+
+.tab-indicator {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Smooth scroll for builder */
+.builder-scroll {
+  scroll-behavior: smooth;
+}
+
+/* Better focus states */
+.focus-ring:focus-visible {
+  outline: 2px solid rgb(139, 92, 246);
+  outline-offset: 2px;
 }
