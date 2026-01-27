@@ -75,6 +75,95 @@ const templates = [
     downloads: 892,
     colors: { primary: "#F97316", secondary: "#EF4444", bg: "#1C1917", text: "#FEF3C7" },
   },
+  {
+  id: 7,
+  name: "Glassmorphism Pro",
+  description: "Modern glassmorphism UI with frosted cards and soft shadows",
+  image: "https://images.unsplash.com/photo-1545239351-1141bd82e8a6?w=400&h=300&fit=crop",
+  category: "Modern",
+  features: ["Glass UI", "Blur Effects", "Soft Shadows", "Floating Cards"],
+  rating: 4.9,
+  downloads: 1678,
+  colors: { primary: "#6366F1", secondary: "#A5B4FC", bg: "#0F172A", text: "#F8FAFC" },
+},
+{
+  id: 8,
+  name: "Monochrome Grid",
+  description: "Black and white grid-based portfolio with editorial vibes",
+  image: "https://images.unsplash.com/photo-1492724441997-5dc865305da7?w=400&h=300&fit=crop",
+  category: "Minimal",
+  features: ["Grid Layout", "Monochrome", "Editorial Style", "Fast Loading"],
+  rating: 4.7,
+  downloads: 834,
+  colors: { primary: "#000000", secondary: "#737373", bg: "#FFFFFF", text: "#000000" },
+},
+{
+  id: 9,
+  name: "Aurora Flow",
+  description: "Animated aurora gradients with smooth flowing transitions",
+  image: "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=400&h=300&fit=crop",
+  category: "Creative",
+  features: ["Aurora Gradients", "Motion Effects", "WebGL Ready", "Dark Theme"],
+  rating: 4.8,
+  downloads: 1192,
+  colors: { primary: "#22D3EE", secondary: "#A855F7", bg: "#020617", text: "#E5E7EB" },
+},
+{
+  id: 10,
+  name: "Terminal Hacker",
+  description: "CLI-inspired portfolio for developers and hackers",
+  image: "https://images.unsplash.com/photo-1518770660439-4636190af475?w=400&h=300&fit=crop",
+  category: "Developer",
+  features: ["Terminal UI", "Typing Animations", "Green Text", "Retro Feel"],
+  rating: 4.9,
+  downloads: 2034,
+  colors: { primary: "#22C55E", secondary: "#16A34A", bg: "#020617", text: "#22C55E" },
+},
+{
+  id: 11,
+  name: "Luxury Black Gold",
+  description: "Premium black and gold theme with elegant animations",
+  image: "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=400&h=300&fit=crop",
+  category: "Premium",
+  features: ["Gold Accents", "Luxury Feel", "Smooth Hover", "Dark UI"],
+  rating: 4.8,
+  downloads: 654,
+  colors: { primary: "#D4AF37", secondary: "#A16207", bg: "#020617", text: "#FAFAFA" },
+},
+{
+  id: 12,
+  name: "Retro Pixel",
+  description: "Pixel-art inspired design with retro gaming aesthetics",
+  image: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?w=400&h=300&fit=crop",
+  category: "Experimental",
+  features: ["Pixel Art", "8-bit Fonts", "Retro UI", "Fun Animations"],
+  rating: 4.6,
+  downloads: 512,
+  colors: { primary: "#FACC15", secondary: "#22C55E", bg: "#1E293B", text: "#F8FAFC" },
+},
+{
+  id: 13,
+  name: "Pastel Soft",
+  description: "Soft pastel colors with friendly and approachable design",
+  image: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=400&h=300&fit=crop",
+  category: "Friendly",
+  features: ["Pastel Colors", "Rounded UI", "Soft Shadows", "Calm Animations"],
+  rating: 4.7,
+  downloads: 943,
+  colors: { primary: "#F472B6", secondary: "#A78BFA", bg: "#FFF7ED", text: "#374151" },
+},
+{
+  id: 14,
+  name: "Startup Pitch",
+  description: "Clean startup-style portfolio focused on metrics and impact",
+  image: "https://images.unsplash.com/photo-1556761175-4b46a572b786?w=400&h=300&fit=crop",
+  category: "Business",
+  features: ["Metrics Focus", "Charts Ready", "CTA Sections", "Professional UI"],
+  rating: 4.8,
+  downloads: 1311,
+  colors: { primary: "#2563EB", secondary: "#22C55E", bg: "#F8FAFC", text: "#0F172A" },
+}
+
 ]
 
 const categories = ["All", "Modern", "Minimal", "Experimental", "Organic", "Creative"]
@@ -83,8 +172,8 @@ export default function TemplatesPage() {
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [selectedTemplate, setSelectedTemplate] = useState<typeof templates[0] | null>(null)
 
-  const filteredTemplates = selectedCategory === "All" 
-    ? templates 
+  const filteredTemplates = selectedCategory === "All"
+    ? templates
     : templates.filter((t) => t.category === selectedCategory)
 
   const handleUseTemplate = (template: typeof templates[0]) => {
@@ -178,7 +267,7 @@ export default function TemplatesPage() {
                     alt={template.name}
                     className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-110"
                   />
-                  
+
                   {/* Hover Overlay */}
                   <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-3">
                     <Button
@@ -322,15 +411,15 @@ export default function TemplatesPage() {
                 ✕
               </button>
             </div>
-            
+
             <div className="p-6">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold text-white">{selectedTemplate.name}</h2>
                 <Badge className="bg-purple-600 text-white">{selectedTemplate.category}</Badge>
               </div>
-              
+
               <p className="text-gray-300 mb-6">{selectedTemplate.description}</p>
-              
+
               {/* Color Palette */}
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-400 mb-3">Color Palette</h3>
@@ -353,7 +442,7 @@ export default function TemplatesPage() {
                   </div>
                 </div>
               </div>
-              
+
               {/* Features */}
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-400 mb-3">Features Included</h3>
@@ -366,7 +455,7 @@ export default function TemplatesPage() {
                   ))}
                 </div>
               </div>
-              
+
               {/* Stats */}
               <div className="flex items-center gap-6 mb-6 text-gray-400">
                 <div className="flex items-center gap-2">
@@ -378,7 +467,7 @@ export default function TemplatesPage() {
                   <span>{selectedTemplate.downloads.toLocaleString()} uses</span>
                 </div>
               </div>
-              
+
               {/* Actions */}
               <div className="flex gap-3">
                 <Button

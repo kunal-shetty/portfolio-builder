@@ -2,6 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Github, ExternalLink, Mail, Linkedin, User } from "lucide-react"
+import NeonCyberTemplate from "./NeonCyberTemplate"
 
 interface PortfolioPreviewProps {
   data: any
@@ -10,6 +11,13 @@ interface PortfolioPreviewProps {
 
 export default function PortfolioPreview({ data, isCompact = false }: PortfolioPreviewProps) {
   const { name, title, bio, email, github, linkedin, profilePicture, projects, skills, theme, animations } = data
+
+  // Template routing based on theme name
+  if (theme?.name === "Neon Cyber") {
+    return <NeonCyberTemplate data={data} isCompact={isCompact} />
+  }
+
+  // Default generic template (fallback)
 
   const containerStyle = {
     backgroundColor: theme.backgroundColor,
@@ -176,7 +184,7 @@ export default function PortfolioPreview({ data, isCompact = false }: PortfolioP
                 <div className={isCompact ? "p-3" : "p-5"}>
                   <h3 className={`${isCompact ? "text-sm" : "text-lg"} font-bold mb-2`}>{project.title}</h3>
                   <p className={`${isCompact ? "text-xs" : "text-sm"} opacity-80 mb-3`}>{project.description}</p>
-                  
+
                   {project.technologies?.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-3">
                       {project.technologies.map((tech: string, i: number) => (

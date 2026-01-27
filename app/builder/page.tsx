@@ -3,7 +3,7 @@
 import type React from "react"
 import { useState, useEffect, useRef } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Eye, Download, Globe, Plus, Trash2, Edit3, Save, ExternalLink, Copy, Upload, User, Menu, X, MessageCircle, Send } from "lucide-react"
+import { Eye, Download, Globe, Plus, Trash2, Edit3, Save, ExternalLink, Copy, Upload, User, Menu, X, MessageCircle, Send, Sparkles } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -15,6 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast"
 import PortfolioPreview from "./components/PortfolioPreview"
 import { NetlifyDeployDialog } from "@/components/NetlifyDeployDialog"
+import { neonCyberDemoData } from "./demo-data"
+import { generateNextJSPortfolio } from "@/lib/generatePortfolio"
 
 interface PortfolioData {
   name: string
@@ -270,34 +272,44 @@ export default function BuilderPage() {
     <link href="https://fonts.googleapis.com/css2?family=${data.theme.font.replace(" ", "+")}:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
         * { box-sizing: border-box; }
-        body { 
-            font-family: '${data.theme.font}', sans-serif; 
+        body {
+            font-family: '${data.theme.font}', sans-serif;
             background-color: ${data.theme.backgroundColor};
             color: ${data.theme.textColor};
             margin: 0;
             padding: 0;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
         }
-        .gradient-bg { background: linear-gradient(135deg, ${data.theme.primaryColor}15, ${data.theme.secondaryColor}15); }
+        .gradient-text {
+            background: linear-gradient(to right, ${data.theme.primaryColor}, ${data.theme.secondaryColor});
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
         .btn {
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            padding: 12px 24px;
-            border-radius: 8px;
+            padding: 14px 28px;
+            border-radius: 50px;
             font-weight: 600;
             text-decoration: none;
             transition: all 0.3s ease;
             cursor: pointer;
             border: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
         }
         .btn-primary {
-            background: ${data.theme.primaryColor};
-            color: ${data.theme.backgroundColor};
+            background: linear-gradient(45deg, ${data.theme.primaryColor}, ${data.theme.secondaryColor});
+            color: white;
+            box-shadow: 0 4px 15px ${data.theme.primaryColor}40;
         }
         .btn-primary:hover {
-            opacity: 0.9;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px ${data.theme.primaryColor}40;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px ${data.theme.primaryColor}60;
         }
         .btn-outline {
             background: transparent;
@@ -307,33 +319,74 @@ export default function BuilderPage() {
         .btn-outline:hover {
             background: ${data.theme.primaryColor};
             color: ${data.theme.backgroundColor};
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px ${data.theme.primaryColor}40;
         }
-        .card {
-            background: ${data.theme.primaryColor}08;
+        .project-card {
+            background: ${data.theme.backgroundColor === '#000000' || data.theme.backgroundColor.includes('0,0,0') ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'};
             border: 1px solid ${data.theme.primaryColor}20;
-            border-radius: 12px;
+            border-radius: 16px;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
         }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
-            border-color: ${data.theme.primaryColor}40;
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, transparent, ${data.theme.primaryColor}10, transparent);
+            transform: translate(-100%, -100%);
+            transition: 0.5s;
+        }
+        .project-card:hover::before {
+            transform: translate(100%, 100%);
+        }
+        .project-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 40px -10px ${data.theme.primaryColor}30;
+            border-color: ${data.theme.primaryColor}60;
         }
         .tag {
             display: inline-block;
-            background: ${data.theme.primaryColor};
-            color: ${data.theme.backgroundColor};
-            padding: 4px 12px;
+            background: ${data.theme.primaryColor}20;
+            color: ${data.theme.primaryColor};
+            border: 1px solid ${data.theme.primaryColor}40;
+            padding: 6px 12px;
             border-radius: 20px;
             font-size: 12px;
             font-weight: 500;
-            margin: 2px;
+            margin: 4px 2px;
+        }
+        .avatar-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto 30px;
+        }
+        .avatar-glow {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, ${data.theme.primaryColor}, ${data.theme.secondaryColor});
+            z-index: -1;
+            filter: blur(20px);
+            opacity: 0.5;
+            animation: pulse 3s infinite;
         }
         .avatar {
-            width: 120px;
-            height: 120px;
+            width: 100%;
+            height: 100%;
             border-radius: 50%;
+            overflow: hidden;
+            border: 4px solid ${data.theme.backgroundColor};
+            position: relative;
+            z-index: 1;
             background: linear-gradient(45deg, ${data.theme.primaryColor}, ${data.theme.secondaryColor});
             display: flex;
             align-items: center;
@@ -341,45 +394,86 @@ export default function BuilderPage() {
             font-size: 48px;
             font-weight: bold;
             color: white;
-            margin: 0 auto 24px;
-            overflow: hidden;
-            border: 4px solid ${data.theme.primaryColor}30;
         }
         .avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .skill-bar {
-            height: 8px;
-            background: ${data.theme.textColor}20;
-            border-radius: 4px;
+        @keyframes pulse {
+            0% { opacity: 0.5; transform: scale(1); }
+            50% { opacity: 0.8; transform: scale(1.05); }
+            100% { opacity: 0.5; transform: scale(1); }
+        }
+        .skill-track {
+            background: ${data.theme.primaryColor}20;
+            border-radius: 20px;
             overflow: hidden;
+            height: 10px;
         }
-        .skill-fill {
+        .skill-bar {
+            background: linear-gradient(90deg, ${data.theme.primaryColor}, ${data.theme.secondaryColor});
             height: 100%;
-            background: ${data.theme.primaryColor};
-            border-radius: 4px;
-            transition: width 1s ease;
+            border-radius: 20px;
+            width: 0;
+            transition: width 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+            position: relative;
         }
-        section { padding: 60px 20px; }
+        .skill-bar::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                rgba(255, 255, 255, 0.15) 0px,
+                rgba(255, 255, 255, 0.15) 10px,
+                transparent 10px,
+                transparent 20px
+            );
+            background-size: 1rem 1rem;
+            animation: stripe-animation 1s linear infinite;
+        }
+        @keyframes stripe-animation {
+            0% { background-position: 0 0; }
+            100% { background-position: 1rem 0; }
+        }
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+        }
+        section { padding: 100px 20px; }
         .container { max-width: 1200px; margin: 0 auto; }
         @media (max-width: 768px) {
-            section { padding: 40px 16px; }
-            .avatar { width: 100px; height: 100px; font-size: 36px; }
-            h1 { font-size: 2rem !important; }
+            section { padding: 60px 16px; }
+            .avatar-container { width: 120px; height: 120px; }
+            .avatar { font-size: 36px; }
+            h1 { font-size: 2.5rem !important; }
             h2 { font-size: 1.5rem !important; }
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
 </head>
 <body>
+    <div id="particles-js"></div>
+    <div style="position: relative; z-index: 1;">
     <!-- Hero Section -->
-    <section class="gradient-bg" style="min-height: 80vh; display: flex; align-items: center;">
-        <div class="container" style="text-align: center;">
-            <div class="avatar">
-                ${data.profilePicture
-        ? `<img src="${data.profilePicture}" alt="${data.name}" />`
+    <section style="min-height: 90vh; display: flex; align-items: center; justify-content: center; text-align: center;">
+        <div class="container">
+            <div class="avatar-container">
+                <div class="avatar-glow"></div>
+                <div class="avatar">
+                    ${data.profilePicture
+        ? `<img src="${data.profilePicture}" alt="${data.name || "Profile"}" />`
         : data.name ? data.name.charAt(0).toUpperCase() : "?"}
+                </div>
             </div>
-            <h1 style="font-size: 3rem; font-weight: 800; margin-bottom: 16px;">${data.name || "Your Name"}</h1>
+            <h1 class="gradient-text" style="font-size: 4rem; font-weight: 800; margin-bottom: 16px;">${data.name || "Your Name"}</h1>
             <h2 style="font-size: 1.5rem; color: ${data.theme.primaryColor}; margin-bottom: 24px;">${data.title || "Your Title"}</h2>
-            <p style="max-width: 600px; margin: 0 auto 32px; opacity: 0.8; line-height: 1.6;">${data.bio || "Your bio will appear here..."}</p>
+            <p style="max-width: 600px; margin: 0 auto 32px; opacity: 0.8; line-height: 1.6; font-size: 1.1rem;">${data.bio || "Your bio will appear here..."}</p>
             <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 16px;">
                 ${data.email ? `<a href="mailto:${data.email}" class="btn btn-primary">Contact Me</a>` : ""}
                 ${data.github ? `<a href="${data.github}" target="_blank" class="btn btn-outline">GitHub</a>` : ""}
@@ -392,20 +486,20 @@ export default function BuilderPage() {
     <!-- Projects Section -->
     <section>
         <div class="container">
-            <h2 style="font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 48px; color: ${data.theme.primaryColor};">Projects</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px;">
+            <h2 class="gradient-text" style="font-size: 3rem; font-weight: 800; text-align: center; margin-bottom: 48px;">Projects</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 32px;">
                 ${data.projects.map(project => `
-                <div class="card">
+                <div class="project-card">
                     <img src="${project.image}" alt="${project.title}" style="width: 100%; height: 200px; object-fit: cover;">
                     <div style="padding: 24px;">
-                        <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 12px;">${project.title}</h3>
+                        <h3 style="font-size: 1.5rem; font-weight: 700; margin-bottom: 12px; color: ${data.theme.primaryColor};">${project.title}</h3>
                         <p style="opacity: 0.8; margin-bottom: 16px; line-height: 1.5;">${project.description}</p>
                         <div style="margin-bottom: 16px;">
                             ${project.technologies.map(tech => `<span class="tag">${tech}</span>`).join("")}
                         </div>
                         <div style="display: flex; gap: 12px;">
-                            ${project.liveUrl ? `<a href="${project.liveUrl}" target="_blank" class="btn btn-primary" style="flex: 1; padding: 10px;">Live Demo</a>` : ""}
-                            ${project.githubUrl ? `<a href="${project.githubUrl}" target="_blank" class="btn btn-outline" style="flex: 1; padding: 10px;">Code</a>` : ""}
+                            ${project.liveUrl ? `<a href="${project.liveUrl}" target="_blank" class="btn btn-primary" style="flex: 1; padding: 12px; font-size: 12px;">Live Demo</a>` : ""}
+                            ${project.githubUrl ? `<a href="${project.githubUrl}" target="_blank" class="btn btn-outline" style="flex: 1; padding: 12px; font-size: 12px;">Code</a>` : ""}
                         </div>
                     </div>
                 </div>
@@ -417,18 +511,18 @@ export default function BuilderPage() {
 
     ${data.skills.length > 0 ? `
     <!-- Skills Section -->
-    <section style="background: ${data.theme.primaryColor}08;">
+    <section style="background: rgba(255,255,255,0.02);">
         <div class="container">
-            <h2 style="font-size: 2rem; font-weight: 800; text-align: center; margin-bottom: 48px; color: ${data.theme.primaryColor};">Skills</h2>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; max-width: 800px; margin: 0 auto;">
+            <h2 class="gradient-text" style="font-size: 3rem; font-weight: 800; text-align: center; margin-bottom: 48px;">Skills</h2>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px; max-width: 900px; margin: 0 auto;">
                 ${data.skills.map(skill => `
                 <div>
                     <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
                         <span style="font-weight: 600;">${skill.name}</span>
                         <span style="opacity: 0.7;">${skill.level}%</span>
                     </div>
-                    <div class="skill-bar">
-                        <div class="skill-fill" style="width: ${skill.level}%;"></div>
+                    <div class="skill-track">
+                        <div class="skill-bar" data-width="${skill.level}" style="width: 0%;"></div></div>
                     </div>
                 </div>
                 `).join("")}
@@ -438,13 +532,61 @@ export default function BuilderPage() {
     ` : ""}
 
     <!-- Contact Section -->
-    <section>
-        <div class="container" style="text-align: center;">
-            <h2 style="font-size: 2rem; font-weight: 800; margin-bottom: 24px; color: ${data.theme.primaryColor};">Get In Touch</h2>
-            <p style="opacity: 0.8; margin-bottom: 32px;">Let's work together on your next project!</p>
-            ${data.email ? `<a href="mailto:${data.email}" class="btn btn-primary" style="font-size: 1.1rem; padding: 16px 32px;">Contact Me</a>` : ""}
+    <section style="text-align: center;">
+        <div class="container">
+            <h2 class="gradient-text" style="font-size: 3rem; font-weight: 800; margin-bottom: 24px;">Get In Touch</h2>
+            <p style="opacity: 0.8; margin-bottom: 32px; font-size: 1.1rem;">Let's work together on your next project!</p>
+            ${data.email ? `<a href="mailto:${data.email}" class="btn btn-primary" style="font-size: 1.1rem; padding: 16px 32px;">Message Me</a>` : ""}
         </div>
     </section>
+    </div>
+
+    <script>
+        // Particle Effect
+        ${data.animations ? `
+        particlesJS('particles-js', {
+            "particles": {
+                "number": { "value": 50, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "${data.theme.primaryColor}" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.3, "random": true },
+                "size": { "value": 3, "random": true },
+                "line_linked": { "enable": true, "distance": 150, "color": "${data.theme.primaryColor}", "opacity": 0.2, "width": 1 },
+                "move": { "enable": true, "speed": 2 }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" } },
+                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 1 } } }
+            },
+            "retina_detect": true
+        });` : ''}
+
+        // Skill Bar Animation
+        function animateSkills() {
+            var skills = document.querySelectorAll(".skill-bar");
+            skills.forEach(skill => {
+                var width = skill.getAttribute('data-width');
+                skill.style.width = width + '%';
+            });
+        }
+
+        // Trigger skill animation when skills section is visible
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    animateSkills();
+                }
+            });
+        });
+        const skillSection = document.querySelector('.skill-track');
+        if(skillSection) observer.observe(skillSection);
+
+        // Initial animation
+        window.setTimeout(() => {
+            animateSkills();
+        }, 500);
+    </script>
 </body>
 </html>`
   }
@@ -452,20 +594,20 @@ export default function BuilderPage() {
   const exportPortfolio = async () => {
     setIsExporting(true)
     try {
-      const JSZip = (await import("jszip")).default
-      const zip = new JSZip()
-      zip.file("index.html", generatePortfolioHTML(portfolioData))
-      zip.file("README.md", `# ${portfolioData.name || "Portfolio"}\n\nBuilt with Portfolio Builder`)
-      const zipBlob = await zip.generateAsync({ type: "blob" })
+      const zipBlob = await generateNextJSPortfolio(portfolioData)
       const url = URL.createObjectURL(zipBlob)
       const a = document.createElement("a")
       a.href = url
-      a.download = `${portfolioData.name?.toLowerCase().replace(/\s+/g, "-") || "portfolio"}.zip`
+      a.download = `${portfolioData.name?.toLowerCase().replace(/\s+/g, "-") || "portfolio"}-nextjs.zip`
       a.click()
       URL.revokeObjectURL(url)
-      toast({ title: "Export Successful!", description: "Your portfolio has been exported." })
-    } catch {
-      toast({ title: "Export Failed", variant: "destructive" })
+      toast({
+        title: "Export Successful!",
+        description: "Your Next.js portfolio has been exported. Run 'npm install' and 'npm run build' to generate the 'out' folder."
+      })
+    } catch (error) {
+      console.error("Export error:", error)
+      toast({ title: "Export Failed", description: String(error), variant: "destructive" })
     } finally {
       setIsExporting(false)
     }
@@ -549,6 +691,15 @@ export default function BuilderPage() {
     }, 800)
   }
 
+  const loadDemoData = () => {
+    setPortfolioData(neonCyberDemoData)
+    localStorage.setItem("portfolio-data", JSON.stringify(neonCyberDemoData))
+    toast({
+      title: "Demo Data Loaded!",
+      description: "Neon Cyber template with sample content has been loaded."
+    })
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-900">
       <NetlifyDeployDialog
@@ -560,17 +711,27 @@ export default function BuilderPage() {
       />
 
       {/* Header */}
-      <header className="bg-black/30 backdrop-blur-md border-b border-white/10 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-3">
+      <header className="bg-black/40 backdrop-blur-xl border-b border-white/20 sticky top-0 z-50 shadow-lg shadow-purple-900/20">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 py-4">
           <div className="flex items-center justify-between gap-2">
-            <h1 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">Portfolio Builder</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent truncate">
+                Portfolio Builder
+              </h1>
+              {portfolioData.theme?.name && (
+                <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-500/20 border border-purple-500/30 text-xs text-purple-300">
+                  <Sparkles className="w-3 h-3" />
+                  {portfolioData.theme.name}
+                </span>
+              )}
+            </div>
 
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setIsPreviewMode(!isPreviewMode)}
-                className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-xs px-3"
+                className="bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-purple-500/50 text-xs px-3 transition-all"
               >
                 <Eye className="w-4 h-4 mr-1" />
                 <span className="hidden sm:inline">{isPreviewMode ? "Edit" : "Preview"}</span>
@@ -581,7 +742,7 @@ export default function BuilderPage() {
                 size="sm"
                 onClick={savePortfolio}
                 disabled={isSaving}
-                className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-xs px-3"
+                className="bg-white/5 border-white/20 text-white hover:bg-white/10 hover:border-green-500/50 text-xs px-3 transition-all"
               >
                 {isSaving ? (
                   <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }} className="w-4 h-4 border-2 border-white border-t-transparent rounded-full" />
@@ -595,10 +756,10 @@ export default function BuilderPage() {
                 variant="default"
                 size="sm"
                 onClick={() => setShowNetlifyDialog(true)}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs px-3"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white text-xs px-3 shadow-lg shadow-purple-500/30 transition-all hover:shadow-purple-500/50"
               >
                 <Globe className="w-4 h-4 mr-1" />
-                <span className="hidden sm:inline">{deploymentUrl ? "Update Site" : "Deploy"}</span>
+                <span className="hidden sm:inline">{deploymentUrl ? "Update" : "Deploy"}</span>
               </Button>
 
               <div className="relative">
@@ -606,7 +767,7 @@ export default function BuilderPage() {
                   variant="outline"
                   size="sm"
                   onClick={(e) => { e.stopPropagation(); setShowMobileMenu(!showMobileMenu) }}
-                  className="bg-white/10 border-white/30 text-white hover:bg-white/20 text-xs px-3"
+                  className="bg-white/5 border-white/20 text-white hover:bg-white/10 text-xs px-3"
                 >
                   <Menu className="w-4 h-4" />
                 </Button>
@@ -618,9 +779,17 @@ export default function BuilderPage() {
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                       onClick={(e) => e.stopPropagation()}
-                      className="absolute right-0 top-full mt-2 w-56 bg-gray-900 border border-gray-700 rounded-lg shadow-xl z-50 overflow-hidden"
+                      className="absolute right-0 top-full mt-2 w-56 bg-gray-900/95 backdrop-blur-xl border border-gray-700/50 rounded-lg shadow-2xl shadow-black/50 z-50 overflow-hidden"
                     >
                       <div className="p-2 space-y-1">
+                        <Button
+                          size="sm"
+                          onClick={() => { loadDemoData(); setShowMobileMenu(false) }}
+                          className="w-full justify-start bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 text-white"
+                        >
+                          <Sparkles className="w-4 h-4 mr-2" />
+                          Load Neon Cyber Demo
+                        </Button>
                         <Button
                           size="sm"
                           onClick={() => { exportPortfolio(); setShowMobileMenu(false) }}
@@ -707,19 +876,30 @@ export default function BuilderPage() {
           ) : (
             <motion.div key="editor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {/* Editor Panel */}
-              <Card className="bg-black/30 backdrop-blur-md border-white/10">
-                <CardHeader className="pb-4">
+              <Card className="bg-black/40 backdrop-blur-xl border-white/20 shadow-2xl shadow-purple-900/10">
+                <CardHeader className="pb-4 border-b border-white/10">
                   <CardTitle className="flex items-center gap-2 text-white text-lg">
-                    <Edit3 className="w-5 h-5" />
+                    <Edit3 className="w-5 h-5 text-purple-400" />
                     Portfolio Editor
                   </CardTitle>
+                  <p className="text-sm text-gray-400 mt-1">Customize your portfolio content and design</p>
                 </CardHeader>
-                <CardContent>
+                <CardContent className="pt-6">
                   <Tabs value={activeTab} onValueChange={setActiveTab}>
-                    <TabsList className="grid w-full grid-cols-5 bg-white/10 mb-6">
-                      {["basic", "projects", "skills", "theme", "settings"].map((tab) => (
-                        <TabsTrigger key={tab} value={tab} className="text-xs data-[state=active]:bg-white/20 data-[state=active]:text-white text-gray-300">
-                          {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                    <TabsList className="grid w-full grid-cols-5 bg-white/5 border border-white/10 mb-6 p-1">
+                      {[
+                        { value: "basic", label: "Basic" },
+                        { value: "projects", label: "Projects" },
+                        { value: "skills", label: "Skills" },
+                        { value: "theme", label: "Theme" },
+                        { value: "settings", label: "Settings" }
+                      ].map((tab) => (
+                        <TabsTrigger
+                          key={tab.value}
+                          value={tab.value}
+                          className="text-xs data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-600 data-[state=active]:to-pink-600 data-[state=active]:text-white data-[state=active]:shadow-lg text-gray-400 transition-all"
+                        >
+                          {tab.label}
                         </TabsTrigger>
                       ))}
                     </TabsList>
@@ -925,15 +1105,16 @@ export default function BuilderPage() {
               </Card>
 
               {/* Live Preview Panel */}
-              <Card className="bg-black/30 backdrop-blur-md border-white/10 hidden lg:block">
-                <CardHeader className="pb-2">
+              <Card className="bg-black/40 backdrop-blur-xl border-white/20 shadow-2xl shadow-purple-900/10 hidden lg:block">
+                <CardHeader className="pb-3 border-b border-white/10">
                   <CardTitle className="flex items-center gap-2 text-white text-lg">
-                    <Eye className="w-5 h-5" />
+                    <Eye className="w-5 h-5 text-green-400" />
                     Live Preview
                   </CardTitle>
+                  <p className="text-sm text-gray-400 mt-1">See your changes in real-time</p>
                 </CardHeader>
-                <CardContent>
-                  <div className="rounded-lg overflow-hidden border border-white/10 h-[600px]">
+                <CardContent className="pt-4">
+                  <div className="rounded-xl overflow-hidden border-2 border-white/10 h-[600px] bg-gradient-to-br from-purple-900/10 to-pink-900/10">
                     <PortfolioPreview data={portfolioData} isCompact />
                   </div>
                 </CardContent>
@@ -943,71 +1124,7 @@ export default function BuilderPage() {
         </AnimatePresence>
       </div>
 
-      {/* Chatbot */}
-      <div className="fixed bottom-4 right-4 z-50">
-        {!isChatOpen ? (
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            whileHover={{ scale: 1.1 }}
-            onClick={() => setIsChatOpen(true)}
-            className="w-12 h-12 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center shadow-lg"
-          >
-            <MessageCircle className="w-5 h-5 text-white" />
-          </motion.button>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="w-80 h-96 bg-gray-900 border border-gray-700 rounded-xl shadow-2xl flex flex-col overflow-hidden"
-          >
-            <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-white" />
-                <span className="font-semibold text-white text-sm">Build Assistant</span>
-              </div>
-              <button onClick={() => setIsChatOpen(false)} className="text-white/80 hover:text-white">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-3 space-y-3">
-              {chatMessages.map((msg, i) => (
-                <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                  <div className={`max-w-[85%] p-2 rounded-lg text-sm ${msg.role === "user" ? "bg-purple-600 text-white" : "bg-gray-800 text-gray-200"}`}>
-                    {msg.content}
-                  </div>
-                </div>
-              ))}
-              {isTyping && (
-                <div className="flex justify-start">
-                  <div className="bg-gray-800 p-2 rounded-lg">
-                    <div className="flex gap-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }} />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            <div className="p-3 border-t border-gray-700">
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={chatInput}
-                  onChange={(e) => setChatInput(e.target.value)}
-                  onKeyPress={(e) => e.key === "Enter" && handleChatSend()}
-                  placeholder="Ask me anything..."
-                  className="flex-1 bg-gray-800 border border-gray-700 rounded-full px-3 py-2 text-sm text-white placeholder:text-gray-500 focus:outline-none focus:border-purple-500"
-                />
-                <button onClick={handleChatSend} className="w-9 h-9 bg-purple-600 rounded-full flex items-center justify-center hover:bg-purple-700">
-                  <Send className="w-4 h-4 text-white" />
-                </button>
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </div>
+
     </div>
   )
 }

@@ -53,13 +53,16 @@
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
 
 /* Ensure buttons are always visible */
-button, .btn, [role="button"] {
+button,
+.btn,
+[role="button"] {
   opacity: 1 !important;
   visibility: visible !important;
 }
@@ -73,24 +76,51 @@ button, .btn, [role="button"] {
 
 /* Custom animations */
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-20px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-20px);
+  }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 20px rgba(139, 92, 246, 0.3); }
-  50% { box-shadow: 0 0 40px rgba(139, 92, 246, 0.6); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(139, 92, 246, 0.3);
+  }
+
+  50% {
+    box-shadow: 0 0 40px rgba(139, 92, 246, 0.6);
+  }
 }
 
 @keyframes gradient-shift {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 @keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
+  0% {
+    transform: translateX(-100%);
+  }
+
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .animate-float {
@@ -138,13 +168,39 @@ button, .btn, [role="button"] {
 }
 
 @keyframes glitch-1 {
-  0%, 14%, 15%, 49%, 50%, 99%, 100% { transform: translate(0); }
-  15%, 49% { transform: translate(-2px, 0); }
+
+  0%,
+  14%,
+  15%,
+  49%,
+  50%,
+  99%,
+  100% {
+    transform: translate(0);
+  }
+
+  15%,
+  49% {
+    transform: translate(-2px, 0);
+  }
 }
 
 @keyframes glitch-2 {
-  0%, 20%, 21%, 62%, 63%, 99%, 100% { transform: translate(0); }
-  21%, 62% { transform: translate(2px, 0); }
+
+  0%,
+  20%,
+  21%,
+  62%,
+  63%,
+  99%,
+  100% {
+    transform: translate(0);
+  }
+
+  21%,
+  62% {
+    transform: translate(2px, 0);
+  }
 }
 
 /* Scrollbar styling */
