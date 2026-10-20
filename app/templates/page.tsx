@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { THEMES, loadPortfolio, savePortfolio } from "@/lib/portfolio"
 
 const templates = [
   {
@@ -166,7 +168,7 @@ const templates = [
 
 ]
 
-const categories = ["All", "Modern", "Minimal", "Experimental", "Organic", "Creative"]
+const categories = ["All", ...Array.from(new Set(templates.map((t) => t.category)))]
 
 export default function TemplatesPage() {
   const [selectedCategory, setSelectedCategory] = useState("All")
@@ -176,32 +178,24 @@ export default function TemplatesPage() {
     ? templates
     : templates.filter((t) => t.category === selectedCategory)
 
+  const router = useRouter()
+
+  // Applies the template's theme to the existing portfolio; content is kept.
   const handleUseTemplate = (template: typeof templates[0]) => {
-    // Save template to localStorage and redirect to builder
-    const portfolioData = {
-      name: "",
-      title: "",
-      bio: "",
-      email: "",
-      github: "",
-      linkedin: "",
-      profilePicture: "",
-      projects: [],
-      skills: [],
-      theme: {
+    const preset = THEMES.find((t) => t.name === template.name)
+    const portfolio = loadPortfolio()
+    savePortfolio({
+      ...portfolio,
+      theme: preset ?? {
+        ...portfolio.theme,
         name: template.name,
         primaryColor: template.colors.primary,
         secondaryColor: template.colors.secondary,
         backgroundColor: template.colors.bg,
         textColor: template.colors.text,
-        font: "Inter",
-        layout: "grid",
       },
-      animations: true,
-      soundEffects: false,
-    }
-    localStorage.setItem("portfolio-data", JSON.stringify(portfolioData))
-    window.location.href = "/builder"
+    })
+    router.push("/builder")
   }
 
   return (
