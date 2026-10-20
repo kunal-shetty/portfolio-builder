@@ -1,61 +1,69 @@
+import { NextResponse } from "next/server"
+import { rateLimit, RateLimitError } from "@/lib/rate-limit"
 
-import { NextRequest, NextResponse } from "next/server"
+export const runtime = "nodejs"
+export const maxDuration = 60
 
-export async function POST(req: NextRequest) {
-    try {
-        const formData = await req.formData()
-        const token = formData.get("token") as string
-        const zipFile = formData.get("file") as File
-        const siteId = formData.get("siteId") as string
+const MAX_ZIP_BYTES = 8 * 1024 * 1024
+const NETLIFY_API = "https://api.netlify.com/api/v1"
 
-        if (!token || !zipFile) {
-            return NextResponse.json(
-                { message: "Missing token or file" },
-                { status: 400 }
-            )
-        }
- 
-        const zipBuffer = await zipFile.arrayBuffer()
+// Proxies the upload because Netlify's API doesn't allow browser CORS.
+// The user's token is forwarded once and never stored or logged.
+export async function POST(req: Request) {
+  try {
+    rateLimit(req, "deploy", 6)
+  } catch (err) {
+    if (err instanceof RateLimitError) return NextResponse.json({ message: err.message }, { status: 429 })
+    throw err
+  }
 
-        // Determine URL: Create New vs Update Existing
-        let url = "https://api.netlify.com/api/v1/sites"
+  let form: FormData
+  try {
+    form = await req.formData()
+  } catch {
+    return NextResponse.json({ message: "Invalid upload." }, { status: 400 })
+  }
 
-        // If siteId exists, we update that site by creating a new deploy for it
-        if (siteId) {
-            url = `https://api.netlify.com/api/v1/sites/${siteId}/deploys`
-        }
+  const token = String(form.get("token") || "").trim()
+  const siteId = String(form.get("siteId") || "").trim()
+  const file = form.get("file")
 
-        const response = await fetch(url, {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/zip",
-            },
-            body: Buffer.from(zipBuffer) as unknown as BodyInit,
-        })
+  if (!token || !(file instanceof Blob)) {
+    return NextResponse.json({ message: "Missing token or site files." }, { status: 400 })
+  }
+  if (siteId && !/^[a-z0-9-]{8,64}$/i.test(siteId)) {
+    return NextResponse.json({ message: "Invalid site ID." }, { status: 400 })
+  }
+  if (file.size > MAX_ZIP_BYTES) {
+    return NextResponse.json({ message: "Site is too large. Use smaller images." }, { status: 413 })
+  }
 
-        const data = await response.json()
+  const url = siteId ? `${NETLIFY_API}/sites/${siteId}/deploys` : `${NETLIFY_API}/sites`
+  let res: Response
+  try {
+    res = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/zip" },
+      body: Buffer.from(await file.arrayBuffer()),
+    })
+  } catch {
+    return NextResponse.json({ message: "Could not reach Netlify. Try again." }, { status: 502 })
+  }
 
-        if (!response.ok) {
-            if (response.status === 404 && siteId) {
-                // Fallback: If site ID not found (maybe deleted), try creating new
-                return NextResponse.json(
-                    { message: "Site ID not found. Try clearing local storage or deploying as new." },
-                    { status: 404 }
-                )
-            }
-            return NextResponse.json(
-                { message: data.message || "Netlify API Error" },
-                { status: response.status }
-            )
-        }
-
-        return NextResponse.json(data)
-    } catch (error) {
-        console.error("Deploy Proxy Error:", error)
-        return NextResponse.json(
-            { message: "Internal Server Error" },
-            { status: 500 }
-        )
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    if (res.status === 401) return NextResponse.json({ message: "Netlify rejected the token. Check it and try again." }, { status: 401 })
+    if (res.status === 404 && siteId) {
+      return NextResponse.json({ message: "That Netlify site no longer exists.", siteMissing: true }, { status: 404 })
     }
+    return NextResponse.json({ message: data?.message || `Netlify error (${res.status}).` }, { status: res.status })
+  }
+
+  // New-site responses are site objects; redeploys are deploy objects. Normalise both.
+  const resultSiteId = data.site_id || data.id
+  const siteUrl = data.ssl_url || data.url || (data.subdomain ? `https://${data.subdomain}.netlify.app` : "")
+  if (!resultSiteId || !siteUrl) {
+    return NextResponse.json({ message: "Deployed, but Netlify didn't return a URL. Check your Netlify dashboard." }, { status: 502 })
+  }
+  return NextResponse.json({ siteId: resultSiteId, url: siteUrl, adminUrl: data.admin_url || "" })
 }
