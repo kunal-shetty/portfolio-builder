@@ -1,30 +1,39 @@
-# Full-stack portfolio builder
+# Portfolio Builder
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+Build an animated portfolio website, preview it live, then download it or deploy it to Netlify.
+No accounts and no database: data lives in the browser (`localStorage`), with JSON backup/restore.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/kunals-projects-52ede66b/v0-full-stack-portfolio-builder)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/2CUZMGDk2Rt)
+## Features
 
-## Overview
+- **One generator** (`lib/generateSite.ts`) produces a single self-contained `index.html`.
+  The live preview, the ZIP download and the Netlify deploy all use it, so the preview is exactly
+  what gets published. All user input is HTML-escaped and links are limited to http(s)/mailto.
+- 14 theme presets, 5 layouts (grid, minimal, brutalist, neon, terminal), custom colors and fonts,
+  scroll animations and canvas backgrounds (respects `prefers-reduced-motion`), optional hover sounds.
+  SEO meta, Open Graph and JSON-LD included.
+- **AI** (Google Gemini, server-side key):
+  - import from a pasted resume / LinkedIn profile
+  - write the bio, polish project descriptions, suggest skills
+  - generate a theme from a description ("dark navy with warm orange accents")
+  - floating assistant that knows your current portfolio
+- **Deploy**: Netlify personal access token → creates a site on first deploy, updates the same
+  site afterwards. The token passes through `/api/deploy` (Netlify has no browser CORS) and is never stored server-side.
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+## Setup
 
-## Deployment
+```bash
+npm install
+cp .env.example .env.local   # add GEMINI_API_KEY
+npm run dev
+```
 
-Your project is live at:
+Works without a key; the AI buttons will say AI isn't configured.
 
-**[https://vercel.com/kunals-projects-52ede66b/v0-full-stack-portfolio-builder](https://vercel.com/kunals-projects-52ede66b/v0-full-stack-portfolio-builder)**
+## Deploy the builder
 
-## Build your app
+Any Node host (Vercel, Netlify, Docker). Set `GEMINI_API_KEY`. API routes have an in-memory,
+per-instance rate limit; add a platform limit for hard guarantees.
 
-Continue building your app on:
+## Scripts
 
-**[https://v0.dev/chat/projects/2CUZMGDk2Rt](https://v0.dev/chat/projects/2CUZMGDk2Rt)**
-
-## How It Works
-
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+`npm run dev` · `npm run build` · `npm start` · `npm run typecheck`
