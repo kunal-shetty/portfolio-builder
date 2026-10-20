@@ -14,13 +14,6 @@ import FloatingElements from "./components/FloatingElements"
 export default function HomePage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
   const [isLoaded, setIsLoaded] = useState(false)
-  const [isChatOpen, setIsChatOpen] = useState(false)
-  const [chatMessages, setChatMessages] = useState<{ role: string, content: string }[]>([
-    { role: "assistant", content: "Hi! I'm your Portfolio Builder assistant. How can I help you today?" }
-  ])
-  const [chatInput, setChatInput] = useState("")
-  const [isTyping, setIsTyping] = useState(false)
-
   useEffect(() => {
     setIsLoaded(true)
     const handleMouseMove = (e: MouseEvent) => {
@@ -30,45 +23,11 @@ export default function HomePage() {
     return () => window.removeEventListener("mousemove", handleMouseMove)
   }, [])
 
-  const handleSendMessage = async () => {
-    if (!chatInput.trim()) return
-
-    const userMessage = chatInput.trim()
-    setChatInput("")
-    setChatMessages(prev => [...prev, { role: "user", content: userMessage }])
-    setIsTyping(true)
-
-    // Simulate AI response
-    setTimeout(() => {
-      const responses: Record<string, string> = {
-        "how": "To get started, click 'Start Building' and fill in your details. You can customize colors, fonts, and layouts in real-time!",
-        "template": "We have several templates: Neon Cyber, Minimal Clean, Brutalist, Glass Morphism, and more. Check out our Templates page!",
-        "deploy": "You can export your portfolio as a ZIP file and upload it to Netlify, Vercel, or GitHub Pages. It's that simple!",
-        "help": "I can help you with: creating your portfolio, choosing templates, customizing themes, adding projects, and deploying your site.",
-        "feature": "Key features include: real-time preview, custom themes, animated effects, project showcase, skills section, and one-click export.",
-        "default": "I'd be happy to help! You can ask me about templates, deployment, features, or how to get started with building your portfolio."
-      }
-
-      const lowerMessage = userMessage.toLowerCase()
-      let response = responses.default
-
-      for (const [key, value] of Object.entries(responses)) {
-        if (lowerMessage.includes(key)) {
-          response = value
-          break
-        }
-      }
-
-      setChatMessages(prev => [...prev, { role: "assistant", content: response }])
-      setIsTyping(false)
-    }, 1000)
-  }
-
   const features = [
     {
-      icon: <Palette className="w-8 h-8" />,
-      title: "Ultra-Modern UI",
-      description: "Crazy animations, parallax effects, and morphing elements that make your portfolio stand out.",
+      icon: <Sparkles className="w-8 h-8" />,
+      title: "AI Writing & Import",
+      description: "Paste your resume and AI fills in your bio, projects and skills, then polishes every description.",
     },
     {
       icon: <Zap className="w-8 h-8" />,
@@ -78,7 +37,7 @@ export default function HomePage() {
     {
       icon: <Code className="w-8 h-8" />,
       title: "Export & Deploy",
-      description: "Download your portfolio as a ZIP or deploy directly to Netlify.",
+      description: "Download a single-file site that runs anywhere, or publish to Netlify in one click.",
     },
     {
       icon: <Globe className="w-8 h-8" />,
@@ -87,8 +46,8 @@ export default function HomePage() {
     },
     {
       icon: <Layers className="w-8 h-8" />,
-      title: "Multiple Templates",
-      description: "Choose from Neon Cyber, Minimal, Brutalist, Glass Morphism, and more unique styles.",
+      title: "14 Themes, 5 Layouts",
+      description: "Neon, Minimal, Brutalist, Terminal and more, or describe a vibe and let AI design the theme.",
     },
     {
       icon: <Rocket className="w-8 h-8" />,
@@ -118,27 +77,6 @@ export default function HomePage() {
     },
   ]
 
-  const pricingPlans = [
-    {
-      name: "Free",
-      price: "$0",
-      features: ["Basic templates", "Export as ZIP", "Community support", "Standard animations"],
-      highlighted: false,
-    },
-    {
-      name: "Pro",
-      price: "$19",
-      features: ["All templates", "One-click deploy", "Priority support", "Advanced animations", "Custom domain", "Analytics"],
-      highlighted: true,
-    },
-    {
-      name: "Team",
-      price: "$49",
-      features: ["Everything in Pro", "Team collaboration", "White-label option", "API access", "Dedicated support"],
-      highlighted: false,
-    },
-  ]
-
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
       <ParticlesBackground />
@@ -146,7 +84,7 @@ export default function HomePage() {
 
       {/* Custom cursor - hidden on mobile */}
       <motion.div
-        className="fixed w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full pointer-events-none z-50 mix-blend-difference hidden md:block"
+        className="fixed top-0 left-0 w-6 h-6 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full pointer-events-none z-50 mix-blend-difference hidden md:block"
         animate={{
           x: mousePosition.x - 12,
           y: mousePosition.y - 12,
