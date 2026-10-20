@@ -1,5 +1,5 @@
 import type React from "react"
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { Toaster } from "@/components/ui/toaster"
@@ -7,25 +7,23 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Portfolio Builder - Create Stunning Portfolios",
+  title: {
+    default: "Portfolio Builder: AI Portfolio Website Maker",
+    template: "%s | Portfolio Builder",
+  },
   description:
-    "Build amazing animated portfolios with crazy effects, real-time customization, and one-click deployment. No coding required.",
-  keywords: "portfolio builder, web design, animations, templates, developer portfolio",
-  authors: [{ name: "Portfolio Builder Team" }],
+    "Build a fast, animated portfolio website in minutes. AI writes your bio and project descriptions, imports your resume, and designs themes. Download it or deploy to Netlify in one click. No sign-up.",
+  keywords: ["portfolio builder", "developer portfolio", "AI portfolio", "personal website", "Netlify"],
   openGraph: {
-    title: "Portfolio Builder - Create Stunning Portfolios",
-    description:
-      "Build amazing animated portfolios with crazy effects, real-time customization, and one-click deployment.",
+    title: "Portfolio Builder: AI Portfolio Website Maker",
+    description: "Animated themes, AI writing help and one-click Netlify deploy. No sign-up required.",
     type: "website",
   },
-    generator: 'v0.dev'
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export const viewport: Viewport = { width: "device-width", initialScale: 1 }
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={inter.className}>
