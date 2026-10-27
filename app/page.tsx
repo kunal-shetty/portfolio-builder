@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { ArrowRight, Sparkles, Zap, Palette, Code, Download, Globe, MessageCircle, X, Send, Layers, Rocket, Users, Star, Check } from "lucide-react"
+import { Github, ArrowRight, Sparkles, Zap, Palette, Code, Download, Globe, MessageCircle, X, Send, Layers, Rocket, Users, Star, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import ParticlesBackground from "./components/ParticlesBackground"
@@ -10,6 +10,8 @@ import AnimatedBlob from "./components/AnimatedBlob"
 import TypewriterText from "./components/TypewriterText"
 import GlitchText from "./components/GlitchText"
 import FloatingElements from "./components/FloatingElements"
+import AlsoTry from "@/components/AlsoTry"
+import DemoVideo from "@/components/DemoVideo"
 
 export default function HomePage() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 })
@@ -152,6 +154,23 @@ export default function HomePage() {
             </Link>
           </motion.div>
         </motion.div>
+      </section>
+
+      {/* Demo video (made with Remotion, see /demos in the workspace) */}
+      <section className="relative px-4 py-16" aria-labelledby="demo-heading">
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            className="mx-auto max-w-5xl"
+          >
+            <p className="mb-3 text-center text-sm font-semibold uppercase tracking-[0.25em] text-purple-300/80">See it in action</p>
+            <h2 id="demo-heading" className="mb-8 text-center text-3xl font-black text-white md:text-5xl">Your portfolio, live in minutes</h2>
+            <div className="overflow-hidden rounded-2xl border border-gray-700/50 bg-gradient-to-br from-gray-900/80 to-gray-800/50 p-2 shadow-2xl shadow-purple-500/10">
+              <DemoVideo src="/demo/portfolio-builder-demo.mp4" poster="/demo/portfolio-builder-demo.jpg" title="Your portfolio, live in minutes" />
+            </div>
+          </motion.div>
       </section>
 
       {/* Features Section */}
@@ -321,11 +340,21 @@ export default function HomePage() {
         </motion.div>
       </section>
 
+      <AlsoTry />
+
       {/* Footer */}
       <footer className="py-12 px-4 border-t border-white/10">
         <div className="max-w-7xl mx-auto text-center">
           <p className="text-gray-400">
-            Made with ❤️ by Kunal
+            Made with ❤️ by{" "}
+            <a
+              href="https://github.com/kunal-shetty"
+              target="_blank"
+              rel="noopener"
+              className="inline-flex items-center gap-1 font-semibold text-white underline-offset-4 hover:text-purple-300 hover:underline"
+            >
+              Kunal <Github className="h-4 w-4" aria-hidden />
+            </a>
           </p>
         </div>
       </footer>
