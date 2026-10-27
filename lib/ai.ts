@@ -1,15 +1,19 @@
-// Server-only Gemini client. Never import this from a client component:
-// it reads GEMINI_API_KEY, which must stay on the server.
+// Server-only Groq client. Never import this from a client component:
+// it reads GROQ_API_KEY, which must stay on the server.
 
-import { rateLimit, RateLimitError } from "./rate-limit"
+import { DAY, MINUTE, RateLimitError, envLimit, rateLimit } from "./rate-limit"
 
-const GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models"
+const GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
+const DEFAULT_MODEL = "openai/gpt-oss-120b"
 
 export class AIError extends Error {
   status: number
-  constructor(message: string, status = 500) {
+  /** Seconds the client should wait before retrying (rate limits). */
+  retryAfter?: number
+  constructor(message: string, status = 500, retryAfter?: number) {
     super(message)
     this.status = status
+    this.retryAfter = retryAfter
   }
 }
 
@@ -23,45 +27,55 @@ interface GenerateOptions {
   messages: AIMessage[]
   temperature?: number
   maxOutputTokens?: number
-  /** OpenAPI-style schema; when set, the model is forced to return matching JSON. */
+  /** JSON schema; when set, the model is asked to return matching JSON. */
   schema?: Record<string, unknown>
 }
 
 function getModel() {
-  return process.env.GEMINI_MODEL || "gemini-2.5-flash"
+  return process.env.GROQ_MODEL || DEFAULT_MODEL
 }
 
-/** Gemini's canonical schema enum is uppercase ("OBJECT", "STRING", ...). */
-function toGeminiSchema(node: unknown): unknown {
-  if (Array.isArray(node)) return node.map(toGeminiSchema)
-  if (!node || typeof node !== "object") return node
-  const out: Record<string, unknown> = {}
-  for (const [key, value] of Object.entries(node)) {
-    out[key] = key === "type" && typeof value === "string" ? value.toUpperCase() : toGeminiSchema(value)
-  }
-  return out
-}
+// GPT-OSS reasons before answering, and those tokens count against the output limit.
+const isReasoningModel = (model: string) => model.startsWith("openai/gpt-oss")
+// Models that accept response_format json_schema; others get json_object plus the schema in the prompt.
+const supportsJsonSchema = (model: string) => /^(openai\/gpt-oss|qwen\/|meta-models\/)/.test(model)
 
 export function isAIConfigured() {
-  return Boolean(process.env.GEMINI_API_KEY)
+  return Boolean(process.env.GROQ_API_KEY)
 }
 
-async function callGemini({ system, messages, temperature = 0.7, maxOutputTokens = 1024, schema }: GenerateOptions) {
-  const apiKey = process.env.GEMINI_API_KEY
+async function callGroq({ system, messages, temperature = 0.7, maxOutputTokens = 1024, schema }: GenerateOptions) {
+  const apiKey = process.env.GROQ_API_KEY
   if (!apiKey) {
-    throw new AIError("AI is not configured. Set GEMINI_API_KEY on the server.", 503)
+    throw new AIError("AI is not configured. Set GROQ_API_KEY on the server.", 503)
   }
 
   const model = getModel()
-  const generationConfig: Record<string, unknown> = { temperature, maxOutputTokens }
-  if (schema) {
-    generationConfig.responseMimeType = "application/json"
-    generationConfig.responseSchema = toGeminiSchema(schema)
+  const reasoning = isReasoningModel(model)
+  const body: Record<string, unknown> = {
+    model,
+    messages: [
+      {
+        role: "system",
+        content:
+          schema && !supportsJsonSchema(model)
+            ? `${system}\n\nRespond with a single JSON object matching this JSON schema:\n${JSON.stringify(schema)}`
+            : system,
+      },
+      ...messages,
+    ],
+    temperature,
+    // Leave room for the hidden reasoning on top of the visible answer.
+    max_completion_tokens: reasoning ? maxOutputTokens + 1024 : maxOutputTokens,
   }
-  // 2.5 Flash "thinks" by default, which is slow and eats the output budget.
-  // These tasks are short rewrites, so skip it.
-  if (model.startsWith("gemini-2.5-flash")) {
-    generationConfig.thinkingConfig = { thinkingBudget: 0 }
+  if (reasoning) {
+    body.reasoning_effort = "low"
+    body.include_reasoning = false
+  }
+  if (schema) {
+    body.response_format = supportsJsonSchema(model)
+      ? { type: "json_schema", json_schema: { name: "result", schema } }
+      : { type: "json_object" }
   }
 
   const controller = new AbortController()
@@ -69,17 +83,10 @@ async function callGemini({ system, messages, temperature = 0.7, maxOutputTokens
 
   let res: Response
   try {
-    res = await fetch(`${GEMINI_ENDPOINT}/${model}:generateContent`, {
+    res = await fetch(GROQ_ENDPOINT, {
       method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: messages.map((m) => ({
-          role: m.role === "assistant" ? "model" : "user",
-          parts: [{ text: m.content }],
-        })),
-        generationConfig,
-      }),
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
+      body: JSON.stringify(body),
       signal: controller.signal,
     })
   } catch (err) {
@@ -91,32 +98,31 @@ async function callGemini({ system, messages, temperature = 0.7, maxOutputTokens
 
   const payload = await res.json().catch(() => null)
   if (!res.ok) {
-    console.error("Gemini error", res.status, payload?.error?.message)
+    console.error("Groq error", res.status, payload?.error?.message)
     if (res.status === 429) throw new AIError("The AI is busy right now. Wait a moment and try again.", 429)
+    if (res.status === 401) throw new AIError("AI is misconfigured on the server.", 503)
     throw new AIError("The AI request failed. Try again.", 502)
   }
 
-  const candidate = payload?.candidates?.[0]
-  const text: string | undefined = candidate?.content?.parts?.map((p: { text?: string }) => p.text ?? "").join("")
-  if (!text) {
-    if (candidate?.finishReason === "SAFETY" || payload?.promptFeedback?.blockReason) {
-      throw new AIError("The AI declined to answer that. Try rephrasing.", 422)
-    }
+  const choice = payload?.choices?.[0]
+  const text: string | undefined = choice?.message?.content
+  if (!text?.trim()) {
+    if (choice?.finish_reason === "content_filter") throw new AIError("The AI declined to answer that. Try rephrasing.", 422)
     throw new AIError("The AI returned an empty response. Try again.", 502)
   }
   return text
 }
 
 export async function generateText(options: Omit<GenerateOptions, "schema">) {
-  return (await callGemini(options)).trim()
+  return (await callGroq(options)).trim()
 }
 
 export async function generateJSON<T>(options: GenerateOptions & { schema: Record<string, unknown> }): Promise<T> {
-  const text = await callGemini(options)
+  const text = await callGroq(options)
   try {
     return JSON.parse(text) as T
   } catch {
-    // Occasionally the model wraps JSON in a code fence despite the mime type.
+    // Occasionally the model wraps JSON in a code fence.
     const match = text.match(/\{[\s\S]*\}/)
     if (match) {
       try {
@@ -127,11 +133,27 @@ export async function generateJSON<T>(options: GenerateOptions & { schema: Recor
   }
 }
 
-export function checkRateLimit(req: Request) {
+/**
+ * Stops one visitor from spamming generations (burst + daily cap per IP), and caps the
+ * whole app per minute so a crowd of IPs can't drain the Groq quota.
+ */
+export async function checkRateLimit(req: Request) {
   try {
-    rateLimit(req, "ai", Number(process.env.AI_RATE_LIMIT_PER_MINUTE || 20))
+    await rateLimit(
+      req,
+      "ai",
+      [
+        { name: "minute", max: envLimit("AI_RATE_LIMIT_PER_MINUTE", 8), windowMs: MINUTE },
+        { name: "day", max: envLimit("AI_RATE_LIMIT_PER_DAY", 100), windowMs: DAY },
+      ],
+      { what: "AI requests" },
+    )
+    await rateLimit(req, "ai", [{ name: "minute", max: envLimit("AI_GLOBAL_RATE_LIMIT_PER_MINUTE", 60), windowMs: MINUTE }], {
+      what: "AI requests from everyone right now",
+      id: "global",
+    })
   } catch (err) {
-    if (err instanceof RateLimitError) throw new AIError("Too many AI requests. Wait a minute and try again.", 429)
+    if (err instanceof RateLimitError) throw new AIError(err.message, 429, err.retryAfter)
     throw err
   }
 }
