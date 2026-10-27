@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { rateLimit, RateLimitError } from "@/lib/rate-limit"
+import { DAY, MINUTE, rateLimit, RateLimitError } from "@/lib/rate-limit"
 
 export const runtime = "nodejs"
 export const maxDuration = 60
@@ -11,9 +11,19 @@ const NETLIFY_API = "https://api.netlify.com/api/v1"
 // The user's token is forwarded once and never stored or logged.
 export async function POST(req: Request) {
   try {
-    rateLimit(req, "deploy", 6)
+    await rateLimit(
+      req,
+      "deploy",
+      [
+        { name: "minute", max: 6, windowMs: MINUTE },
+        { name: "day", max: 60, windowMs: DAY },
+      ],
+      { what: "deploys" },
+    )
   } catch (err) {
-    if (err instanceof RateLimitError) return NextResponse.json({ message: err.message }, { status: 429 })
+    if (err instanceof RateLimitError) {
+      return NextResponse.json({ message: err.message }, { status: 429, headers: { "Retry-After": String(err.retryAfter) } })
+    }
     throw err
   }
 
