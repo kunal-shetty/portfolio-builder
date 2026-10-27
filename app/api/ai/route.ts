@@ -186,13 +186,16 @@ ${clip(input.portfolio, 6000)}
 
 export async function POST(req: Request) {
   try {
-    checkRateLimit(req)
+    await checkRateLimit(req)
     const body = await req.json().catch(() => null)
     const handler = body && typeof body.task === "string" ? tasks[body.task] : undefined
     if (!handler) return NextResponse.json({ error: "Unknown AI task." }, { status: 400 })
     return NextResponse.json(await handler(body.input || {}))
   } catch (err) {
-    if (err instanceof AIError) return NextResponse.json({ error: err.message }, { status: err.status })
+    if (err instanceof AIError) {
+      const headers = err.retryAfter ? { "Retry-After": String(err.retryAfter) } : undefined
+      return NextResponse.json({ error: err.message, retryAfter: err.retryAfter }, { status: err.status, headers })
+    }
     console.error("AI route error", err)
     return NextResponse.json({ error: "Something went wrong. Try again." }, { status: 500 })
   }
